@@ -1,0 +1,28 @@
+**/node_modules/**
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Credentials
+.env
+.env.test
+
+# Webstorm/text editor meta
+.idea/
+# VSCode meta folder
+.vscode
+
+# Distribution
+dist/
+
+# Emacs
+*~
+*#
+
+# tern
+.tern-port
+
+#coverage
+.nyc_output
+coverage
