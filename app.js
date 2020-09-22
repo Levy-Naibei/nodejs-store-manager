@@ -2,11 +2,8 @@ const express = require('express');
 
 const app = express();
 
-app.use((req, res) => {
-    res.status(200).json({
-        message: 'Welcome to store manager'
-    });
-});
+// define routes
+app.use('/products', require('./api/routes/products'));
 
 const port = process.env.PORT || 5000;
 
