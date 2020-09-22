@@ -10,8 +10,8 @@ router.get('/', (req, res) => {
 });
 
 /**
- * @desc   fetch all products
- * @route  GET  /products
+ * @desc   Add a product
+ * @route  POST  /products/add
  */
 router.post('/add', (req, res) => {
     
@@ -31,6 +31,10 @@ router.get('/:id', (req, res) => {
     }
 });
 
+/**
+ * @desc   update a single product
+ * @route  PATCH  /products/:id
+ */
 router.patch('/:id', (req, res) => {
     const product = req.params.id;
     if(!product){
@@ -39,6 +43,10 @@ router.patch('/:id', (req, res) => {
     res.send('Product successfully updated!');
 });
 
+/**
+ * @desc   delete a single product
+ * @route  DELETE /products/:id
+ */
 router.delete('/:id', (req, res) => {
     const product = req.params.id
     if(!product){

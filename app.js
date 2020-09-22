@@ -4,6 +4,7 @@ const app = express();
 
 // define routes
 app.use('/products', require('./api/routes/products'));
+app.use('/orders', require('./api/routes/orders'));
 
 const port = process.env.PORT || 5000;
 
