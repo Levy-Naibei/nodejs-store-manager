@@ -27,7 +27,7 @@ router.get('/:id', (req, res) => {
     if(!id){
         res.send('Order with that ID does not exist');
     } else {
-        res.send('Fetch a single Order from store!')
+        res.send('Fetch a single order from store!')
     }
 });
 
@@ -39,8 +39,9 @@ router.delete('/:id', (req, res) => {
     const order = req.params.id
     if(!order){
         res.send('Order does not exist!');
+    } else {
+        res.send('Order successfully deleted!');
     }
-    res.send('Order successfully deleted!');
 });
 
 module.exports = router;
