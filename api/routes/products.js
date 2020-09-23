@@ -14,8 +14,15 @@ router.get('/', (req, res) => {
  * @route  POST  /products/add
  */
 router.post('/add', (req, res) => {
-    
-    res.send('Product successfully added to store!');
+    const product = {
+        name: req.name,
+        price: req.price
+    };
+    res.send({
+        status: 201,
+        product: product,
+        message:'Product successfully added to store!'
+    });
 });
 
 /**

@@ -1,12 +1,22 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./db-conn/db');
 
-// express instance
+// app instance
 const app = express();
 
-// loging req, res to the terminal
-app.use(morgan('dev'));
+//load configs from .env file
+dotenv.config({path: './.env'});
+
+// loging req to the terminal
+if(process.env.NODE_ENV === 'development'){
+    app.use(morgan('dev'));
+}
+
+// log db connection
+connectDB();
 
 /**
  * parsing the body of incoming req because 
@@ -29,9 +39,8 @@ app.use((error, req, res) => {
 });
 
 const port = process.env.PORT || 5000;
-
 app.listen(port, () => {
-    console.log(`Server running at port ${port}`);
+    console.log(`Server running in ${process.env.NODE_ENV} mode at port ${port}`);
 });
 
 module.exports = app;
