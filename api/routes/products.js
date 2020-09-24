@@ -1,4 +1,7 @@
 const express = require('express')
+const Product = require('../model/products');
+
+// instance of express Router
 const router = express.Router();
 
 /**
@@ -6,22 +9,43 @@ const router = express.Router();
  * @route  GET  /products
  */
 router.get('/', (req, res) => {
-    res.send('Fetch all products from store!');
+    Product.find()
+           .exec()
+           .then(data => {
+               if (data) {
+                    res.status(200).json({
+                    message:'All products from store!',
+                    product: data
+                });
+               } else {
+                   res.status(404).json({message: 'Store empty!'});
+               }
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: err });
+    })
 });
 
 /**
  * @desc   Add a product
  * @route  POST  /products/add
  */
-router.post('/add', (req, res) => {
-    const product = {
-        name: req.name,
-        price: req.price
-    };
-    res.send({
-        status: 201,
-        product: product,
-        message:'Product successfully added to store!'
+router.post('/', (req, res) => {
+    const product = new Product ({
+        // set the product's name and price( comes from the request)
+        name: req.body.name,
+        price: req.body.price
+    });
+    // save the product
+    product.save((err, product) => {
+        if(err) {
+            res.send(err)
+        }
+        res.status(201).json({
+            message:'Product successfully added to store!',
+            product: product
+        });
     });
 });
 
@@ -31,11 +55,19 @@ router.post('/add', (req, res) => {
  */
 router.get('/:id', (req, res) => {
     const id = req.params.id;
-    if(!id){
-        res.send('Product with that ID does not exist');
-    } else {
-        res.send('Fetch a single product from store!')
-    }
+    Product.findById({_id: id})
+        .exec()
+        .then(data => {
+            if (data) {
+                res.status(200).json(data);
+            } else {
+                res.status(404).json({message: 'No product with that ID'});
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: err})
+        })
 });
 
 /**
@@ -55,11 +87,18 @@ router.patch('/:id', (req, res) => {
  * @route  DELETE /products/:id
  */
 router.delete('/:id', (req, res) => {
-    const product = req.params.id
-    if(!product){
-        res.send('Product does not exist!');
-    }
-    res.send('Product successfully deleted!');
+    const id = req.params.id
+    Product.remove({_id: id}).exec()
+            .then(result => {
+                res.status(200).json({
+                    message: 'Delete successful!',
+                    result: result
+                })
+            })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({error: err})
+    });
 });
 
 module.exports = router;
