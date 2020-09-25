@@ -10,16 +10,31 @@ const router = express.Router();
  */
 router.get('/', (req, res) => {
     Product.find()
-           .exec()
-           .then(data => {
-               if (data) {
-                    res.status(200).json({
-                    message:'All products from store!',
-                    product: data
-                });
-               } else {
-                   res.status(404).json({message: 'Store empty!'});
-               }
+        .select('name price _id')
+        .exec()
+        .then(data => {
+            const response = {
+                count: data.length,
+                products: data.map(product => {
+                    return {
+                        name: product.name,
+                        price: product.price,
+                        _id: product._id,
+                        request: {
+                            type: 'GET',
+                            url: `http://localhost:${process.env.PORT}/products/${product._id}`
+                        }
+                    };
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                message:'All products from store!',
+                product: response
+            });
+            } else {
+                res.status(404).json({message: 'Store empty!'});
+            }
     })
     .catch(err => {
         console.log(err);
@@ -37,16 +52,28 @@ router.post('/', (req, res) => {
         name: req.body.name,
         price: req.body.price
     });
-    // save the product
-    product.save((err, product) => {
-        if(err) {
-            res.send(err)
-        }
-        res.status(201).json({
-            message:'Product successfully added to store!',
-            product: product
+    // save the product and return response
+    product.save()
+        .select('name price _id')
+        .exec()
+        .then(data => {
+            res.status(201).json({
+                message: 'Product added successfully',
+                product: {
+                    name: data.name,
+                    price: data.price,
+                    _id: data._id,
+                    // request: {
+                    //     type: 'GET',
+                    //     url: `http://localhost:${process.env.PORT}/products/${data._id}`
+                    // }
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: err })
         });
-    });
 });
 
 /**
@@ -54,12 +81,18 @@ router.post('/', (req, res) => {
  * @route  GET  /products/:id
  */
 router.get('/:id', (req, res) => {
-    const id = req.params.id;
-    Product.findById({_id: id})
+    Product.findById({_id: req.params.id})
+        .select('name price _id')
         .exec()
         .then(data => {
             if (data) {
-                res.status(200).json(data);
+                res.status(200).json({
+                    product: data,
+                    // request: {
+                    //     type: 'GET',
+                    //     url: `localhost:${process.env.PORT}/products`
+                    // }
+                });
             } else {
                 res.status(404).json({message: 'No product with that ID'});
             }
@@ -75,11 +108,26 @@ router.get('/:id', (req, res) => {
  * @route  PATCH  /products/:id
  */
 router.patch('/:id', (req, res) => {
-    const product = req.params.id;
-    if(!product){
-        res.send('Product does not exist!');
+    const updatedProduct = {};
+    for (const prod of req.body) {
+        updatedProduct[prod.prodName] = prod.value
     }
-    res.send('Product successfully updated!');
+
+    Product.update({_id: req.params.id}, {$set: updatedProduct})
+        .exec()
+        .then(data => {
+            res.status(200).json({
+                message: 'Product updated successfully!',
+                request: {
+                    type: 'GET',
+                    url: `http:localhost:${process.env.PORT}/products/${id}`
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: err });
+        })
 });
 
 /**
@@ -87,14 +135,18 @@ router.patch('/:id', (req, res) => {
  * @route  DELETE /products/:id
  */
 router.delete('/:id', (req, res) => {
-    const id = req.params.id
-    Product.remove({_id: id}).exec()
-            .then(result => {
-                res.status(200).json({
-                    message: 'Delete successful!',
-                    result: result
-                })
+    Product.remove({_id: req.params.id})
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: 'Delete successful!',
+                // request: {
+                //     type: 'POST',
+                //     url: `localhost:${process.env.PORT}/products/`,
+                //     body: {name: 'String', price: 'Number'}
+                // }
             })
+        })
     .catch(err => {
         console.log(err);
         res.status(500).json({error: err})

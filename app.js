@@ -24,8 +24,8 @@ connectDB();
  * it may not be in the format thats readable in node 
  * also handle cors policy; so that other web pages/clients can access API
  */
- app.use(bodyParser.urlencoded({ extended: false}));
- app.use(bodyParser.json());
+ app.use(express.urlencoded({ extended: false}));
+ app.use(express.json());
  app.use(cors());
 
 
