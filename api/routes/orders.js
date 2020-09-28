@@ -12,6 +12,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
     Order.find()
         .select('product quantity _id')
+        .populate('product', 'name')
         .exec()
         .then(data => {
             const response = {
@@ -94,6 +95,7 @@ router.post('/', (req, res) => {
 router.get('/:id', (req, res) => {
     Order.findById({_id: req.params.id})
         .select('product quantity _id')
+        .populate('product')
         .exec()
         .then(data => {
             if (data) {
