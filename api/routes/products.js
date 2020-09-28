@@ -47,7 +47,7 @@ router.get('/', (req, res) => {
  * @route  POST  /products/add
  */
 router.post('/', (req, res) => {
-    const product = new Product ({
+    const product = new Product({
         // set the product's name and price( comes from the request)
         name: req.body.name,
         price: req.body.price

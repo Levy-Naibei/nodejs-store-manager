@@ -1,47 +1,140 @@
 const express = require('express')
+const Order = require('../model/orders');
+const Product = require('../model/products');
+
+// instance of express Router
 const router = express.Router();
 
 /**
- * @desc   fetch all orders
- * @route  GET  /products
+ * @desc   fetch all orders or handles incoming GET requests to /orders
+ * @route  GET  /orders
  */
 router.get('/', (req, res) => {
-    res.send('Fetch all orders from store!');
+    Order.find()
+        .select('product quantity _id')
+        .exec()
+        .then(data => {
+            const response = {
+                count: data.length,
+                orders: data.map(order => {
+                    return {
+                        product: order.product,
+                        quantity: order.quantity,
+                        _id: order._id,
+                        request: {
+                            type: 'GET',
+                            url: `http://localhost:${process.env.PORT}/orders/${order._id}`
+                        }
+                    };
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                message:'All placed orders!',
+                orders: response
+            });
+            } else {
+                res.status(404).json({message: 'No orders placed!'});
+            }
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: err });
+    })
 });
 
 /**
- * @desc   add an order
- * @route  POST /orders/add
- */
-router.post('/add', (req, res) => {
-    
-    res.send('Order successfully added to store!');
+ * @desc   place an order
+ * @route  POST  /order
+ * */
+router.post('/', (req, res) => {
+    Product.findById({_id: req.params.productId})
+        .then(product => {
+            // check whether the product exist
+            if(!product) {
+                return res.status(404),json({
+                    message: 'Product not found!'
+                })
+            }
+            const order = new Order({
+                // set the order's productId and quantity( comes from the request)
+                product: req.body.productId,
+                quantity: req.body.quantity
+            });
+            // save order
+            return order.save();
+        })
+        .select('product quantity _id')
+        // .exec()
+        .then(data => {
+            res.status(201).json({
+                message: 'Order placed successfully!',
+                createdOrder: {
+                    // body: {productId: ID, quantity: 'Number'} - POSTMAN
+                    product: data.product,
+                    quantity: data.quantity,
+                    _id: data._id,
+                    // request: {
+                    //     type: 'GET',
+                    //     url: `http://localhost:${process.env.PORT}/orders/${data._id}`
+                    // }
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: err })
+        })
 });
 
 /**
  * @desc   fetch a single order
- * @route  GET /orders/:id
+ * @route  GET  /order/:id
  */
 router.get('/:id', (req, res) => {
-    const id = req.params.id;
-    if(!id){
-        res.send('Order with that ID does not exist');
-    } else {
-        res.send('Fetch a single order from store!')
-    }
+    Order.findById({_id: req.params.id})
+        .select('product quantity _id')
+        .exec()
+        .then(data => {
+            if (data) {
+                res.status(200).json({
+                    order: data,
+                    // request: {
+                    //     type: 'GET',
+                    //     url: `localhost:${process.env.PORT}/orders`
+                    // }
+                });
+            } else {
+                res.status(404).json({message: 'No order with that ID!'});
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: err})
+        })
 });
 
 /**
- * @desc   delete an order
+ * @desc   delete a single order
  * @route  DELETE /orders/:id
  */
 router.delete('/:id', (req, res) => {
-    const order = req.params.id
-    if(!order){
-        res.send('Order does not exist!');
-    } else {
-        res.send('Order successfully deleted!');
-    }
+    Order.remove({_id: req.params.id})
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: 'Order deleted successfully!',
+                // request: {
+                //     type: 'POST',
+                //     url: `localhost:${process.env.PORT}/orders`,
+                //     body: {productId: ID, quantity: 'Number'}
+                // }
+            })
+        })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({error: err})
+    });
 });
 
 module.exports = router;
