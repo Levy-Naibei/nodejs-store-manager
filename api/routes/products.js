@@ -1,5 +1,32 @@
 const express = require('express')
 const Product = require('../model/products');
+const multer = require('multer');
+
+// define how to upload image
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString() + file.originalname);
+    }
+});
+
+// filter according to type
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+}
+
+// initialize multer;p upload max is 3MB
+const upload = multer({
+    storage: storage,
+    limits: 1024 * 1024 * 3,
+    fileFilter: fileFilter
+});
 
 // instance of express Router
 const router = express.Router();
@@ -10,7 +37,7 @@ const router = express.Router();
  */
 router.get('/', (req, res) => {
     Product.find()
-        .select('name price _id')
+        .select('_id name price productPic')
         .exec()
         .then(data => {
             const response = {
@@ -19,6 +46,7 @@ router.get('/', (req, res) => {
                     return {
                         name: product.name,
                         price: product.price,
+                        productPic: product.productPic,
                         _id: product._id,
                         request: {
                             type: 'GET',
@@ -46,22 +74,23 @@ router.get('/', (req, res) => {
  * @desc   Add a product
  * @route  POST  /products/add
  */
-router.post('/', (req, res) => {
+router.post('/', upload.single('productPic'), (req, res) => {
+    console.log(req.file);
     const product = new Product({
         // set the product's name and price( comes from the request)
         name: req.body.name,
-        price: req.body.price
+        price: req.body.price,
+        productPic: req.file.path
     });
     // save the product and return response
     product.save()
-        .select('name price _id')
-        .exec()
         .then(data => {
             res.status(201).json({
                 message: 'Product added successfully',
                 product: {
                     name: data.name,
                     price: data.price,
+                    productPic: data.productPic,
                     _id: data._id,
                     // request: {
                     //     type: 'GET',
@@ -82,7 +111,7 @@ router.post('/', (req, res) => {
  */
 router.get('/:id', (req, res) => {
     Product.findById({_id: req.params.id})
-        .select('name price _id')
+        .select('_id name price productPic')
         .exec()
         .then(data => {
             if (data) {
@@ -90,7 +119,7 @@ router.get('/:id', (req, res) => {
                     product: data,
                     // request: {
                     //     type: 'GET',
-                    //     url: `localhost:${process.env.PORT}/products`
+                    //     url: `http://localhost:${process.env.PORT}/products`
                     // }
                 });
             } else {
@@ -135,16 +164,16 @@ router.patch('/:id', (req, res) => {
  * @route  DELETE /products/:id
  */
 router.delete('/:id', (req, res) => {
-    Product.remove({_id: req.params.id})
+    Product.deleteOne({_id: req.params.id})
         .exec()
         .then(result => {
             res.status(200).json({
-                message: 'Delete successful!',
-                // request: {
-                //     type: 'POST',
-                //     url: `localhost:${process.env.PORT}/products/`,
-                //     body: {name: 'String', price: 'Number'}
-                // }
+                message: 'Product deleted successful!',
+                request: {
+                    type: 'POST',
+                    url: `http://localhost:${process.env.PORT}/products/`,
+                    body: {name: 'String', price: 'Number'}
+                }
             })
         })
     .catch(err => {

@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./db-conn/db');
-const bodyParser = require('body-parser');
+//const bodyParser = require('body-parser');
 
 // define app using express
 const app = express();
@@ -15,6 +15,9 @@ dotenv.config({path: './.env'});
 if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'));
 }
+
+// handling static files
+app.use('/uploads', express.static('uploads'))
 
 // log db connection
 connectDB();

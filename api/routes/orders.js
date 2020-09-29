@@ -103,7 +103,7 @@ router.get('/:id', (req, res) => {
                     order: data,
                     // request: {
                     //     type: 'GET',
-                    //     url: `localhost:${process.env.PORT}/orders`
+                    //     url: `http://localhost:${process.env.PORT}/orders`
                     // }
                 });
             } else {
@@ -121,14 +121,14 @@ router.get('/:id', (req, res) => {
  * @route  DELETE /orders/:id
  */
 router.delete('/:id', (req, res) => {
-    Order.remove({_id: req.params.id})
+    Order.deleteOne({_id: req.params.id})
         .exec()
         .then(result => {
             res.status(200).json({
                 message: 'Order deleted successfully!',
                 // request: {
                 //     type: 'POST',
-                //     url: `localhost:${process.env.PORT}/orders`,
+                //     url: `http://localhost:${process.env.PORT}/orders`,
                 //     body: {productId: ID, quantity: 'Number'}
                 // }
             })
