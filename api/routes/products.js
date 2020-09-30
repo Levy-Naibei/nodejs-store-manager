@@ -55,13 +55,14 @@ router.get('/', (req, res) => {
                     };
                 })
             }
-            if (data) {
-                res.status(200).json({
-                message:'All products from store!',
-                product: response
-            });
-            } else {
+            if (!data) {
                 res.status(404).json({message: 'Store empty!'});
+            
+            } else {
+                res.status(200).json({
+                    message:'All products from store!',
+                    product: response
+                });
             }
     })
     .catch(err => {
@@ -139,7 +140,7 @@ router.get('/:id', (req, res) => {
 router.patch('/:id', (req, res) => {
     const updatedProduct = {};
     for (const prod of req.body) {
-        updatedProduct[prod.prodName] = prod.value
+        updatedProduct[prod.prodName] = prod.value;
     }
 
     Product.update({_id: req.params.id}, {$set: updatedProduct})

@@ -35,6 +35,7 @@ connectDB();
 // define routes (register routes)
 app.use('/products', require('./api/routes/products'));
 app.use('/orders', require('./api/routes/orders'));
+app.use('/users', require('./api/routes/users'))
 
 // Error handling
 app.use((error, req, res) => {
