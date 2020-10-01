@@ -1,6 +1,7 @@
 const express = require('express')
 const Order = require('../model/orders');
 const Product = require('../model/products');
+const checkJwt = require('../middleware/auth-setup');
 
 // instance of express Router
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
  * @desc   fetch all orders or handles incoming GET requests to /orders
  * @route  GET  /orders
  */
-router.get('/', (req, res) => {
+router.get('/', checkJwt, (req, res) => {
     Order.find()
         .select('product quantity _id')
         .populate('product', 'name')
@@ -46,9 +47,9 @@ router.get('/', (req, res) => {
 
 /**
  * @desc   place an order
- * @route  POST  /order
+ * @route  POST  /orders
  * */
-router.post('/', (req, res) => {
+router.post('/', checkJwt, (req, res) => {
     Product.findById({_id: req.params.productId})
         .then(product => {
             // check whether the product exist
@@ -90,9 +91,9 @@ router.post('/', (req, res) => {
 
 /**
  * @desc   fetch a single order
- * @route  GET  /order/:id
+ * @route  GET  /orders/:id
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', checkJwt, (req, res) => {
     Order.findById({_id: req.params.id})
         .select('product quantity _id')
         .populate('product')
@@ -120,7 +121,7 @@ router.get('/:id', (req, res) => {
  * @desc   delete a single order
  * @route  DELETE /orders/:id
  */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', checkJwt, (req, res) => {
     Order.deleteOne({_id: req.params.id})
         .exec()
         .then(result => {

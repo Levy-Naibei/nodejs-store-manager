@@ -1,6 +1,7 @@
 const express = require('express')
 const Product = require('../model/products');
 const multer = require('multer');
+const checkJwt = require('../middleware/auth-setup');
 
 // define how to upload image
 const storage = multer.diskStorage({
@@ -75,7 +76,7 @@ router.get('/', (req, res) => {
  * @desc   Add a product
  * @route  POST  /products/add
  */
-router.post('/', upload.single('productPic'), (req, res) => {
+router.post('/', checkJwt, upload.single('productPic'), (req, res) => {
     console.log(req.file);
     const product = new Product({
         // set the product's name and price( comes from the request)
@@ -110,7 +111,7 @@ router.post('/', upload.single('productPic'), (req, res) => {
  * @desc   fetch a single product
  * @route  GET  /products/:id
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', checkJwt, (req, res) => {
     Product.findById({_id: req.params.id})
         .select('_id name price productPic')
         .exec()
@@ -137,10 +138,10 @@ router.get('/:id', (req, res) => {
  * @desc   update a single product
  * @route  PATCH  /products/:id
  */
-router.patch('/:id', (req, res) => {
+router.patch('/:id', checkJwt, (req, res) => {
     const updatedProduct = {};
-    for (const prod of req.body) {
-        updatedProduct[prod.prodName] = prod.value;
+    for (let prod of req.body) {
+        updatedProduct[prod.propName] = prod.value;
     }
 
     Product.update({_id: req.params.id}, {$set: updatedProduct})
@@ -164,7 +165,7 @@ router.patch('/:id', (req, res) => {
  * @desc   delete a single product
  * @route  DELETE /products/:id
  */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', checkJwt, (req, res) => {
     Product.deleteOne({_id: req.params.id})
         .exec()
         .then(result => {
